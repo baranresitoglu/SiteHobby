@@ -1,43 +1,56 @@
-{
-  "name": "sitehobby",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/cli": "^6.2.0",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/ios": "^6.2.0",
-    "axios": "^1.7.9",
-    "cheerio": "^1.0.0",
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "puppeteer": "^23.11.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^7.1.1"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.17.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
-    "globals": "^15.14.0",
-    "vite": "^6.0.5"
-  },
-  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import { load } from "cheerio";
+
+const app = express();
+const PORT = 5001;
+
+app.use(cors());
+
+app.get("/", (req, res) => {
+  res.send("API is running.");
+});
+
+app.get("/api/news/category/:category", async (req, res) => {
+  const { category } = req.params;
+  const url = `https://firatnews.com/${category}`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+
+    const html = response.data;
+    const $ = load(html);
+
+    const news = [];
+    $(".entry-title a").each((index, element) => {
+      const title = $(element).text().trim();
+      const link = $(element).attr("href");
+
+      const image = $(element).closest("div").find("img.img-responsive").attr("src");
+      const fullImageUrl = image
+        ? image.startsWith("http")
+          ? image
+          : `https://firatnews.com${image}`
+        : "https://via.placeholder.com/150";
+
+      news.push({
+        title,
+        link: `https://firatnews.com${link}`,
+        image: fullImageUrl,
+        description: "Pas de description disponible.",
+      });
+    });
+
+    res.json(news);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des actualités :", error.message);
+    res.status(500).send("Erreur serveur.");
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
