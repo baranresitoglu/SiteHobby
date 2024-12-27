@@ -4,7 +4,7 @@ import axios from "axios";
 import { load } from "cheerio";
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001; // Supporte un port défini pour le déploiement
 
 app.use(cors());
 

@@ -6,11 +6,10 @@ function NewsPage() {
   const [error, setError] = useState(null); // État des erreurs
   const [category, setCategory] = useState("guncel"); // Catégorie par défaut
 
-  // Fonction pour récupérer les actualités en fonction de la catégorie
   const fetchNewsByCategory = (category) => {
     setLoading(true);
     setError(null); // Réinitialiser l'erreur avant une nouvelle requête
-    fetch(`/api/news/category/${category}`) // Corrigé : utilisation des backticks
+    fetch(`https://barans-page.onrender.com/api/news/category/${category}`) // Proxy configuré pour local ou Render
       .then((response) => {
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des actualités");
@@ -29,7 +28,6 @@ function NewsPage() {
       });
   };
 
-  // Charger les actualités lors du changement de catégorie
   useEffect(() => {
     fetchNewsByCategory(category);
   }, [category]);
@@ -38,7 +36,6 @@ function NewsPage() {
     <div style={{ padding: "20px" }}>
       <h1>Actualités</h1>
 
-      {/* Menu déroulant pour sélectionner une catégorie */}
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
@@ -59,10 +56,8 @@ function NewsPage() {
         <option value="analiz">Analiz</option>
       </select>
 
-      {/* Affichage des erreurs */}
       {error && <p style={{ color: "red" }}>Erreur : {error}</p>}
 
-      {/* Affichage des actualités ou message d'absence */}
       {!loading && news.length === 0 && !error && (
         <p>Aucune actualité disponible pour cette catégorie.</p>
       )}
